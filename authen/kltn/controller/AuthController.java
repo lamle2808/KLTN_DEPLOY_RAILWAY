@@ -11,32 +11,30 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.kltn.dataBean.LoginResponse;
 import com.example.kltn.entity.Account;
 import com.example.kltn.entity.VerificationToken;
 import com.example.kltn.service.AccountService;
 import com.example.kltn.service.EmailService;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/auth")
-@Slf4j
 public class AuthController {
     private final AccountService accountService;
     private final EmailService emailService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody Account account) {
-        try {
-            Account registeredAccount = accountService.register(account);
-            VerificationToken token = accountService.createVerificationToken(registeredAccount);
-            emailService.sendVerificationEmail(registeredAccount.getEmail(), token.getToken());
-            return ResponseEntity.ok("Đăng ký thành công. Vui lòng kiểm tra email để xác minh tài khoản.");
-        } catch (Exception exception) {
-            return ResponseEntity.badRequest().body("Có lỗi xảy ra trong quá trình đăng ký: " + exception.getMessage());
+    public ResponseEntity<String> registerUser(@RequestBody Account account) {
+        Account accountSaved = accountService.register(account);
+        VerificationToken token = accountService.createVerificationToken(accountSaved);
+        if (token != null) {
+            emailService.sendVerificationEmail(account.getEmail(), token.getToken());
+            return ResponseEntity.ok("Đăng ký thành công. Kiểm tra email để xác minh tài khoản.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Email đã đăng ký trước đó và mã xác minh còn hiệu lực.");
         }
     }
 
@@ -70,16 +68,25 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody Account account) {
         try {
             String token = accountService.login(account);
-            if (token.isEmpty()) {
-                return ResponseEntity.badRequest().body("Email hoặc mật khẩu không chính xác");
+            if (token.equals("")) {
+                return ResponseEntity.badRequest().body("incorrect email or incorrect password!!");
             }
-            Account accountLogin = accountService.getByEmail(account.getEmail()).orElseThrow();
+            Account accountLogin = accountService.getByEmail2(account.getEmail());
             if (accountLogin.getEnable() == 0 || accountLogin.getIsVerified() == 0) {
-                return ResponseEntity.badRequest().body("Tài khoản chưa được kích hoạt");
+                return ResponseEntity.badRequest().body("account is not acctive !!");
             }
+            // Customer customer = customerService.getByEmail(account.getEmail());
+            // if (customer != null) {
+            // CustomerDataBean customerDataBean = accountService.customerLogin(token,
+            // customer);
+            // return ResponseEntity.ok().body(customerDataBean);
+            // }
+            // Employee employee = employeeService.getByEmail(account.getEmail());
+            // EmployeeDataBean employeeDataBean = accountService.employeeLogin(token,
+            // employee);
             return ResponseEntity.ok().body(token);
         } catch (Exception exception) {
-            return ResponseEntity.badRequest().body("Có lỗi xảy ra trong quá trình đăng nhập: " + exception.getMessage());
+            return ResponseEntity.badRequest().body("There is an exception when execute!! --> " + exception);
         }
     }
 

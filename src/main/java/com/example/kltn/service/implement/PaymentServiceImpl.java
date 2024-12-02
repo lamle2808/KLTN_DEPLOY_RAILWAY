@@ -33,4 +33,14 @@ public class PaymentServiceImpl implements PaymentService {
     public void deletePayment(Long id) {
         paymentRepo.deleteById(id);
     }
+
+    @Override
+    public void updatePaymentStatus(String orderId, String status) {
+        Long orderIdLong = Long.parseLong(orderId);
+        Payment payment = paymentRepo.findByOrderId(orderIdLong);
+        if (payment != null) {
+            payment.setPaymentStatus(status);
+            paymentRepo.save(payment);
+        }
+    }
 } 

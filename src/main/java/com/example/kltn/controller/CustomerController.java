@@ -4,8 +4,10 @@ import com.example.kltn.entity.Customer;
 import com.example.kltn.service.CustomerService;
 import com.example.kltn.config.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.jsonwebtoken.JwtException;
 
 import java.util.List;
 import java.util.Map;
@@ -54,13 +56,24 @@ public class CustomerController {
             @RequestHeader("Authorization") String token,
             @RequestBody Customer customer) {
         try {
+            if (token == null || token.length() < 8) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Invalid token"));
+            }
             String email = jwtService.extractEmail(token.substring(7));
             Customer currentCustomer = customerService.findByEmail(email);
+            if (currentCustomer == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Customer not found"));
+            }
             customer.setId(currentCustomer.getId());
             return ResponseEntity.ok(customerService.saveOrUpdate(customer));
+        } catch (JwtException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", "Invalid JWT token"));
         } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                .body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "An unexpected error occurred"));
         }
     }
 } 

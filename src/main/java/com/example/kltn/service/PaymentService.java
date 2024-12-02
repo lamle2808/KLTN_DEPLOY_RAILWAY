@@ -8,4 +8,5 @@ public interface PaymentService {
     List<Payment> getAll();
     Payment getById(Long id);
     void deletePayment(Long id);
+    void updatePaymentStatus(String orderId, String status);
 } 

@@ -157,4 +157,14 @@ public class PaymentController {
         // Implement logic to handle VNPAY return
         return ResponseEntity.ok("VNPAY return handled");
     }
+
+    @PutMapping("/update-status/{orderId}")
+    public ResponseEntity<?> updatePaymentStatus(@PathVariable String orderId, @RequestParam String status) {
+        try {
+            paymentService.updatePaymentStatus(orderId, status);
+            return ResponseEntity.ok("Trạng thái thanh toán đã được cập nhật thành công");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi khi cập nhật trạng thái thanh toán: " + e.getMessage());
+        }
+    }
 } 

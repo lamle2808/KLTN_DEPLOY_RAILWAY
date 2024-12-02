@@ -8,4 +8,5 @@ public interface OrderService {
     List<Order> getAll();
     Order getById(Long id);
     void deleteOrder(Long id);
+    void updateOrderStatus(Long orderId, String status);
 } 
