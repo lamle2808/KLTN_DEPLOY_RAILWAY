@@ -25,11 +25,11 @@ public class SecurityConfiguration {
                             .csrf(csrf -> csrf
                                             .disable())
                             .authorizeHttpRequests(requests -> requests
-                                            .requestMatchers("/KLTN_DEPLOY_RAILWAY/api/v1/**")
+                                            .requestMatchers("/api/v1/**")
                                             .permitAll() // Permit tất cả các yêu cầu với /KLTN-2024/api/v1/**
-                                            .requestMatchers("/KLTN_DEPLOY_RAILWAY/api/v1/auth/**") // Permit cho đường dẫn auth                                                                                              // auth
+                                            .requestMatchers("/api/v1/auth/**") // Permit cho đường dẫn auth                                                                                              // auth
                                             .permitAll()
-                                            .requestMatchers("/KLTN_DEPLOY_RAILWAY/api/manage/admin/**")
+                                            .requestMatchers("/api/manage/admin/**")
                                             .hasRole("ADMIN")
                                             .requestMatchers(AUTH_WHITELIST)
                                             .permitAll()
