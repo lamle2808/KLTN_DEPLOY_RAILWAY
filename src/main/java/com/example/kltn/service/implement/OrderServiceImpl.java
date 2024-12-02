@@ -1,6 +1,7 @@
 package com.example.kltn.service.implement;
 
 import com.example.kltn.entity.Order;
+import com.example.kltn.entity.Employee;
 import com.example.kltn.repository.OrderRepo;
 import com.example.kltn.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,15 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepo.findById(orderId).orElse(null);
         if (order != null) {
             order.setStatus(status);
+            orderRepo.save(order);
+        }
+    }
+
+    @Override
+    public void assignEmployeeToOrder(Long orderId, Employee employee) {
+        Order order = orderRepo.findById(orderId).orElse(null);
+        if (order != null) {
+            order.setAssignedEmployee(employee);
             orderRepo.save(order);
         }
     }

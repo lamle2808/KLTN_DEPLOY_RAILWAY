@@ -1,7 +1,9 @@
 package com.example.kltn.controller;
 
 import com.example.kltn.entity.Order;
+import com.example.kltn.entity.Employee;
 import com.example.kltn.service.OrderService;
+import com.example.kltn.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +16,7 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final EmployeeService employeeService;
 
     @GetMapping
     public ResponseEntity<List<Order>> getAllOrders() {
@@ -114,5 +117,16 @@ public class OrderController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }
+    }
+
+    @PutMapping("/{orderId}/assign-employee/{employeeId}")
+    public ResponseEntity<Order> assignEmployeeToOrder(@PathVariable Long orderId, @PathVariable Long employeeId) {
+        Order order = orderService.getById(orderId);
+        Employee employee = employeeService.getById(employeeId);
+        if (order == null || employee == null) {
+            return ResponseEntity.notFound().build();
+        }
+        orderService.assignEmployeeToOrder(orderId, employee);
+        return ResponseEntity.ok(order);
     }
 } 
