@@ -39,7 +39,6 @@ public class Account implements UserDetails {
     private String email;
     private String phoneNumber;
     private String passWordAccount;
-    private String image;
     private int isVerified;
     private int enable;
     @ManyToMany(fetch = FetchType.EAGER)

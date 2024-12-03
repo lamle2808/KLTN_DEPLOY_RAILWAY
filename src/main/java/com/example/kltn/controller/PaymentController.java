@@ -11,13 +11,18 @@ import com.example.kltn.service.VnpayService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.example.kltn.config.VnpayConfig;
 import com.example.kltn.constant.Status;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/payments")
@@ -29,6 +34,7 @@ public class PaymentController {
     private final CustomerService customerService;
     private final OrderService orderService;
     private final VnpayService vnpayService;
+    private final VnpayConfig vnpayConfig;
 
     @GetMapping
     public ResponseEntity<List<Payment>> getAllPayments() {
@@ -55,8 +61,8 @@ public class PaymentController {
                 orderInfo = request.getOrderInfo();
             }
             
-            // Tạo payment URL từ MoMo
-            String paymentUrl = momoService.createPayment(
+            // Tạo payment URL từ VNPay
+            String paymentUrl = vnpayService.createPayment(
                 orderId,  // Sử dụng orderId mới tạo
                 request.getAmount().toString(), 
                 orderInfo
@@ -64,7 +70,7 @@ public class PaymentController {
             
             // Lưu thông tin thanh toán
             Payment payment = new Payment();
-            payment.setPaymentMethod("MOMO");
+            payment.setPaymentMethod("VNPAY");
             payment.setPaymentStatus(Status.PAYMENT_PENDING.getValue());
             payment.setAmount(request.getAmount());
             payment.setPaymentDate(new Date());
@@ -154,15 +160,37 @@ public class PaymentController {
 
     @GetMapping("/vnpay-return")
     public ResponseEntity<?> vnpayReturn(@RequestParam Map<String, String> params) {
-        // Implement logic to handle VNPAY return
-        return ResponseEntity.ok("VNPAY return handled");
+        try {
+            // Lấy các tham số cần thiết từ VNPay
+            String vnp_TxnRef = params.get("vnp_TxnRef");
+            String vnp_ResponseCode = params.get("vnp_ResponseCode");
+            String vnp_SecureHash = params.get("vnp_SecureHash");
+
+            // Xác thực mã băm (checksum)
+            String calculatedHash = vnpayService.hmacSHA512(vnpayConfig.getHashSecret(), params);
+            if (!calculatedHash.equals(vnp_SecureHash)) {
+                return ResponseEntity.badRequest().body("Invalid checksum");
+            }
+
+            // Kiểm tra mã phản hồi từ VNPay
+            if ("00".equals(vnp_ResponseCode)) {
+                // Giao dịch thành công, cập nhật trạng thái đơn hàng
+                paymentService.updatePaymentStatus(vnp_TxnRef, "PAID");
+                return ResponseEntity.ok("Payment successful");
+            } else {
+                // Giao dịch thất bại
+                return ResponseEntity.badRequest().body("Payment failed");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error processing payment: " + e.getMessage());
+        }
     }
 
     @PutMapping("/update-status/{orderId}")
     public ResponseEntity<?> updatePaymentStatus(@PathVariable String orderId, @RequestParam String status) {
         try {
             paymentService.updatePaymentStatus(orderId, status);
-            return ResponseEntity.ok("Trạng thái thanh toán đã được cập nhật thành công");
+            return ResponseEntity.ok("Trạng thái thanh toán đã ược cập nhật thành công");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi cập nhật trạng thái thanh toán: " + e.getMessage());
         }

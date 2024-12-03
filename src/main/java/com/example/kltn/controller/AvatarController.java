@@ -34,7 +34,6 @@ public class AvatarController {
             Map result = cloudinaryService.upload(file);
             Avatar avatar = new Avatar();
             avatar.setImageLink((String) result.get("url"));
-            avatar.setName((String) result.get("original_filename"));
             avatar.setIdCloud((String) result.get("public_id"));
             
             DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;

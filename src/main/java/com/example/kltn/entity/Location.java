@@ -39,15 +39,12 @@ public class Location implements Serializable{
     @OneToMany(mappedBy = "location", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ImageLocation> images = new ArrayList<>();
     
-    private String img;
-    
     private String address;
     private Double latitude;
     private Double longitude;
     private Integer capacity;
     private Double price;
     private Double rating;
-    private Integer size;
     private String description;
     
     @ElementCollection

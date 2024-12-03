@@ -26,7 +26,7 @@ public class OrderDetail implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private int quntilty;
+    private int quantilty;
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "order_id")

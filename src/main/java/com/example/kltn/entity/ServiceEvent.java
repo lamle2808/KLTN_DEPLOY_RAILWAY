@@ -3,7 +3,6 @@ package com.example.kltn.entity;
 import java.io.Serializable;
 import java.util.*;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -31,6 +30,9 @@ public class ServiceEvent implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String servicename;
+    private String description;
+    private double price;
 
     @ManyToOne
     @JoinColumn(name = "serviceCategory_id")
@@ -45,10 +47,6 @@ public class ServiceEvent implements Serializable {
     )
     @JsonIgnoreProperties("services")
     private Set<Location> locations = new HashSet<>();
-
-    private String servicename;
-    private String description;
-    private double price;
 
     @OneToMany(mappedBy = "serviceEvent")
     @JsonIgnoreProperties("serviceEvent")
